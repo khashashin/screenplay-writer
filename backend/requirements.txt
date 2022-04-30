@@ -10,3 +10,4 @@ passlib~=1.7.4
 alembic~=1.7.7
 python-dotenv~=0.20.0
 tenacity~=8.0.1
+emails~=0.6
