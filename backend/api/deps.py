@@ -18,8 +18,8 @@ reusable_oauth2 = OAuth2PasswordBearerCookie(
 
 
 def get_db() -> Generator:
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         yield db
     finally:
         db.close()

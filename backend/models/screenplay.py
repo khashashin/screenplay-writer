@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database.base_class import Base
+from sqlalchemy.ext.orderinglist import ordering_list
 
 
 class Screenplay(Base):
@@ -15,3 +16,5 @@ class Screenplay(Base):
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     owner = relationship("User", back_populates="screenplays")
+    elements = relationship("EditorElement", back_populates="screenplay", order_by="EditorElement.position",
+                            collection_class=ordering_list('position'))

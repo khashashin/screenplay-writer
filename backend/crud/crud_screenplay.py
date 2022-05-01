@@ -12,9 +12,19 @@ class CRUDScreenplay(CRUDBase[models.Screenplay, schemas.ScreenplayBase, schemas
     @staticmethod
     def create(db: Session, *, obj_in: schemas.ScreenplayCreate) -> models.Screenplay:
         db_obj = models.Screenplay()
-        db_obj.name = obj_in.name
-        db_obj.description = obj_in.description
-        db_obj.is_public = obj_in.is_public
+        db_obj.name = obj_in['name']
+        db_obj.description = obj_in['description']
+        db_obj.owner_id = obj_in['owner_id']
+
+        for element in obj_in.get('elements'):
+            e = models.EditorElement(
+                content=element.content,
+                content_type=element.content_type,
+                position=element.position,
+                screenplay_id=db_obj.id
+            )
+            db_obj.elements.append(e)
+
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

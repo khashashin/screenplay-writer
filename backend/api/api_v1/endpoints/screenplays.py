@@ -43,6 +43,7 @@ def create_screenplay(
         "description": screenplay_in.description,
         "is_public": screenplay_in.is_public,
         "owner_id": current_user.id,
+        "elements": screenplay_in.elements
     }
     return crud.screenplay.create(db=db, obj_in=data)
 
