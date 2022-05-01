@@ -31,7 +31,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
         if hasattr(self.model, "deleted_at"):
-            return db.query(self.model).filter(self.model.deleted_at is not None).offset(skip).limit(limit).all()
+            #  exclude deleted objects
+            return db.query(self.model).filter(self.model.deleted_at == None).offset(skip).limit(limit).all()
         return db.query(self.model).offset(skip).limit(limit).all()
 
     def update(

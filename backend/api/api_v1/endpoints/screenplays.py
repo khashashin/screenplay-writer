@@ -19,7 +19,8 @@ def get_screenplay_list(
         current_user: schemas.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Get screenplay list
+    Get screenplay list.
+    Allow only if user is owner or superuser.
     """
     if crud.user.is_superuser(current_user):
         screenplays = crud.screenplay.get_multi(db, skip=skip, limit=limit)
@@ -29,14 +30,15 @@ def get_screenplay_list(
 
 
 @router.post("/", response_model=schemas.Screenplay)
-def create_screenplay(
+async def create_screenplay(
         *,
         db: Session = Depends(deps.get_db),
         screenplay_in: schemas.ScreenplayCreate,
         current_user: schemas.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Create new screenplay
+    Create new screenplay.
+    Any registered user can create new screenplay.
     """
     data = {
         "name": screenplay_in.name,
@@ -45,7 +47,7 @@ def create_screenplay(
         "owner_id": current_user.id,
         "elements": screenplay_in.elements
     }
-    return crud.screenplay.create(db=db, obj_in=data)
+    return await crud.screenplay.create(db=db, obj_in=data)
 
 
 @router.get("/{screenplay_id}", response_model=schemas.Screenplay)
@@ -56,7 +58,8 @@ def get_screenplay(
         current_user: schemas.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Get screenplay by ID
+    Get screenplay by ID.
+    Allow only if user is owner or superuser.
     """
     screenplay = crud.screenplay.get(db=db, id=screenplay_id)
     if not screenplay:
@@ -66,7 +69,7 @@ def get_screenplay(
     return screenplay
 
 
-@router.put("/{screenplay_id}", response_model=schemas.ScreenplayBase)
+@router.put("/{screenplay_id}", response_model=schemas.Screenplay)
 def update_screenplay(
         *,
         db: Session = Depends(deps.get_db),
@@ -75,7 +78,8 @@ def update_screenplay(
         current_user: schemas.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Update screenplay
+    Update screenplay.
+    Allow only if user is owner or superuser.
     """
     screenplay = crud.screenplay.get(db=db, id=screenplay_id)
     if not screenplay:
@@ -94,6 +98,7 @@ def delete_screenplay(
 ) -> Any:
     """
     Delete screenplay
+    Allow only if user is owner or superuser.
     """
     screenplay = crud.screenplay.get(db=db, id=screenplay_id)
     if not screenplay:
@@ -103,7 +108,7 @@ def delete_screenplay(
     return crud.screenplay.remove(db=db, id=screenplay_id)
 
 
-@router.get("/public/{screenplay_id}", response_model=schemas.ScreenplayBase)
+@router.get("/public/{screenplay_id}", response_model=schemas.Screenplay)
 def get_public_screenplay(
         *,
         db: Session = Depends(deps.get_db),
@@ -117,3 +122,14 @@ def get_public_screenplay(
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
     return screenplay
 
+
+@router.get("/public/", response_model=List[schemas.Screenplay])
+def get_public_screenplay(
+        *,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    """
+    Get all public screenplays
+    """
+    screenplay = crud.screenplay.get_multi_public(db=db)
+    return screenplay

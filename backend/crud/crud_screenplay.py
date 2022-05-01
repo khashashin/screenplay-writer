@@ -10,7 +10,7 @@ import schemas
 class CRUDScreenplay(CRUDBase[models.Screenplay, schemas.ScreenplayBase, schemas.ScreenplayBase]):
 
     @staticmethod
-    def create(db: Session, *, obj_in: schemas.ScreenplayCreate) -> models.Screenplay:
+    async def create(db: Session, *, obj_in: schemas.ScreenplayCreate) -> models.Screenplay:
         db_obj = models.Screenplay()
         db_obj.name = obj_in['name']
         db_obj.description = obj_in['description']
@@ -48,11 +48,19 @@ class CRUDScreenplay(CRUDBase[models.Screenplay, schemas.ScreenplayBase, schemas
     ) -> List[models.Screenplay]:
         return (
             db.query(self.model)
-            .filter(models.Screenplay.owner_id == owner_id, models.Screenplay.deleted_at is None)
+            .filter(self.model.owner_id == owner_id, self.model.deleted_at.is_(None))
             .offset(skip)
             .limit(limit)
             .all()
         )
+
+    def get_multi_public(
+        self, db: Session, *, skip: int = 0, limit: int = 100
+    ) -> List[models.Screenplay]:
+        return db.query(self.model).filter(
+            self.model.deleted_at.is_(None),
+            self.model.is_public.is_(True)
+        ).offset(skip).limit(limit).all()
 
 
 screenplay = CRUDScreenplay(models.Screenplay)
